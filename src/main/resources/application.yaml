@@ -1,0 +1,16 @@
+spring:
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: fin_track_db
+      username: VINI_LEMESS
+      password: b72724fa-bf6f-43d5-aaea-4b30877661f3
+      authentication-database: admin
+  graphql:
+    graphiql:
+      enabled: true
+  application:
+    name: parallel-graphql-fetching-poc
+server:
+  port: 8090

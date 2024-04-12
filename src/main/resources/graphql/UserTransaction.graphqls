@@ -1,0 +1,17 @@
+type Query {
+    userTransactionByUserSignature(userSignature: String!): UserTransaction
+}
+
+type UserTransaction {
+    userSignature: String!
+    user: User
+    transactions: [Transaction]
+}
+
+type User {
+    name: String
+}
+
+type Transaction {
+    amount: String
+}
