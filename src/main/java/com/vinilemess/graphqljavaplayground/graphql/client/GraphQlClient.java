@@ -6,6 +6,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -53,6 +54,10 @@ public class GraphQlClient {
             final String queryWithArguments = formatQueryWithArguments(this.query, this.arguments);
 
             return new GraphQlExecution(queryWithArguments, this.headers);
+        }
+
+        public CompletableFuture<GraphQlExecution> executeAsync() {
+            return CompletableFuture.supplyAsync(this::execute);
         }
 
         private String formatQueryWithArguments(final String query,

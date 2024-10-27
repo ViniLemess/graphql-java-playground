@@ -13,10 +13,13 @@ import org.wiremock.spring.EnableWireMock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static java.math.BigDecimal.TEN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 @SpringBootTest
 @EnableWireMock
@@ -129,6 +132,16 @@ class GraphQlJavaPlaygroundTest {
                 .as(UserTransactionsTestDto.class, "userTransactionByUserSignature");
 
         assertEquals(expectedUserTransactions, result);
+    }
+
+    @Test
+    void shouldReturnFutureWhenExecutingAsyncQuery() {
+        stubFor(post("/graphql").willReturn(okJson(USER_TRANSACTIONS_JSON)));
+
+        var result = graphQlClient.query(FETCH_USER_TRANSACTIONS_QUERY, Map.of("userSignature", "userSig"))
+                .executeAsync();
+
+        assertInstanceOf(CompletableFuture.class, result);
     }
 
     private record UserTransactionsTestDto(String userSignature, User user, List<Transaction> transactions) {
