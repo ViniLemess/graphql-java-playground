@@ -61,7 +61,7 @@ class GraphqlJavaPlaygroundTest {
 
     @BeforeEach
     void setup() {
-        graphqlClient = new GraphqlClient(String.format(wiremockUrl));
+        graphqlClient = GraphqlClient.create(wiremockUrl);
     }
 
     @Test

@@ -1,7 +1,6 @@
 package com.vinilemess.graphqljavaplayground.graphql.client;
 
 import com.vinilemess.graphqljavaplayground.graphql.client.result.GraphqlResult;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
@@ -17,8 +16,12 @@ public class GraphqlClient {
     private static final String GRAPHQL_PATH = "/graphql";
     private final RestClient restClient;
 
-    public GraphqlClient(final @Value("${graphql-api.url}") String url) {
+    private GraphqlClient(String url) {
         this.restClient = RestClient.create(url);
+    }
+
+    public static GraphqlClient create(final String url) {
+        return new GraphqlClient(url);
     }
 
     public GraphqlRequestBuilder query(final String query, final Map<String, Object> arguments) {
