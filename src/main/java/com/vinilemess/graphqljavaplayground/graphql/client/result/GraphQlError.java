@@ -2,7 +2,7 @@ package com.vinilemess.graphqljavaplayground.graphql.client.result;
 
 import java.util.Collection;
 
-public record GraphqlError(
+public record GraphQlError(
         String message,
         Collection<Location> locations,
         Collection<String> path,

@@ -1,6 +1,6 @@
 package com.vinilemess.graphqljavaplayground.graphql.client;
 
-import com.vinilemess.graphqljavaplayground.graphql.client.result.GraphqlResult;
+import com.vinilemess.graphqljavaplayground.graphql.client.result.GraphQlResult;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
@@ -11,48 +11,48 @@ import java.util.regex.Pattern;
 
 import static java.util.Objects.requireNonNullElse;
 
-public class GraphqlClient {
+public class GraphQlClient {
 
     private static final String GRAPHQL_PATH = "/graphql";
     private final RestClient restClient;
 
-    private GraphqlClient(String url) {
+    private GraphQlClient(String url) {
         this.restClient = RestClient.create(url);
     }
 
-    public static GraphqlClient create(final String url) {
-        return new GraphqlClient(url);
+    public static GraphQlClient create(final String url) {
+        return new GraphQlClient(url);
     }
 
-    public GraphqlRequestBuilder query(final String query, final Map<String, Object> arguments) {
-        return new GraphqlRequestBuilder(query, arguments);
+    public GraphQlRequestBuilder query(final String query, final Map<String, Object> arguments) {
+        return new GraphQlRequestBuilder(query, arguments);
     }
 
-    public class GraphqlRequestBuilder {
+    public class GraphQlRequestBuilder {
         private final String query;
         private final HttpHeaders headers;
         private final Map<String, Object> arguments;
 
-        private GraphqlRequestBuilder(final String query, final Map<String, Object> arguments) {
+        private GraphQlRequestBuilder(final String query, final Map<String, Object> arguments) {
             this.query = query;
             this.headers = new HttpHeaders();
             this.arguments = arguments;
         }
 
-        public GraphqlRequestBuilder header(final String header, final String value) {
+        public GraphQlRequestBuilder header(final String header, final String value) {
             this.headers.add(header, value);
             return this;
         }
 
-        public GraphqlRequestBuilder headers(final MultiValueMap<String, String> headers) {
+        public GraphQlRequestBuilder headers(final MultiValueMap<String, String> headers) {
             this.headers.addAll(headers);
             return this;
         }
 
-        public GraphqlExecution execute() {
+        public GraphQlExecution execute() {
             final String queryWithArguments = formatQueryWithArguments(this.query, this.arguments);
 
-            return new GraphqlExecution(queryWithArguments, this.headers);
+            return new GraphQlExecution(queryWithArguments, this.headers);
         }
 
         private String formatQueryWithArguments(final String query,
@@ -67,21 +67,21 @@ public class GraphqlClient {
         }
     }
 
-    public class GraphqlExecution {
+    public class GraphQlExecution {
 
         private final RestClient.RequestBodySpec result;
 
-        public GraphqlExecution(final String query,
+        public GraphQlExecution(final String query,
                                 final HttpHeaders headers) {
             result = restClient.post()
                     .uri(GRAPHQL_PATH)
-                    .body(new GraphqlRequestBody(query, getOperationNameOrElseNull(query)).toString())
+                    .body(new GraphQlRequestBody(query, getOperationNameOrElseNull(query)).toString())
                     .headers(httpHeaders -> httpHeaders.addAll(headers));
         }
 
-        public GraphqlResult getResult() {
+        public GraphQlResult getResult() {
             return result.retrieve()
-                    .toEntity(GraphqlResult.class)
+                    .toEntity(GraphQlResult.class)
                     .getBody();
         }
 

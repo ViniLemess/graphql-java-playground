@@ -6,7 +6,7 @@ import com.vinilemess.graphqljavaplayground.graphql.client.ObjectMapperUtils;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 
-public record GraphqlResult(LinkedHashMap<Object, Object> data, Collection<GraphqlError> errors) {
+public record GraphQlResult(LinkedHashMap<Object, Object> data, Collection<GraphQlError> errors) {
 
     private static final ObjectMapper objectMapper = ObjectMapperUtils.createObjectMapper();
 

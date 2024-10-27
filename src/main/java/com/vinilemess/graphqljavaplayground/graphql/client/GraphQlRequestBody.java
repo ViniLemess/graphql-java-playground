@@ -1,6 +1,6 @@
 package com.vinilemess.graphqljavaplayground.graphql.client;
 
-public record GraphqlRequestBody(String query, String operationName) {
+public record GraphQlRequestBody(String query, String operationName) {
 
     @Override
     public String toString() {

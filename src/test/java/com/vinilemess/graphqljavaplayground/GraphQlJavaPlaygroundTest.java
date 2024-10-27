@@ -2,7 +2,7 @@ package com.vinilemess.graphqljavaplayground;
 
 import com.vinilemess.graphqljavaplayground.api.mock.usertransaction.Transaction;
 import com.vinilemess.graphqljavaplayground.api.mock.usertransaction.User;
-import com.vinilemess.graphqljavaplayground.graphql.client.GraphqlClient;
+import com.vinilemess.graphqljavaplayground.graphql.client.GraphQlClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
 @EnableWireMock
-class GraphqlJavaPlaygroundTest {
+class GraphQlJavaPlaygroundTest {
 
     public static final String FETCH_USER_TRANSACTIONS_QUERY = """
             query fetchUserTransactions {
@@ -57,11 +57,11 @@ class GraphqlJavaPlaygroundTest {
     @Value("${wiremock.server.baseUrl}")
     private String wiremockUrl;
 
-    private GraphqlClient graphqlClient;
+    private GraphQlClient graphQlClient;
 
     @BeforeEach
     void setup() {
-        graphqlClient = GraphqlClient.create(wiremockUrl);
+        graphQlClient = GraphQlClient.create(wiremockUrl);
     }
 
     @Test
@@ -74,7 +74,7 @@ class GraphqlJavaPlaygroundTest {
                 List.of(new Transaction(null, LocalDateTime.of(2049, 10, 5, 0, 0, 0), TEN))
         );
 
-        var result = graphqlClient.query(FETCH_USER_TRANSACTIONS_QUERY, Map.of("userSignature", "userSig"))
+        var result = graphQlClient.query(FETCH_USER_TRANSACTIONS_QUERY, Map.of("userSignature", "userSig"))
                 .execute()
                 .getResult()
                 .as(UserTransactionsTestDto.class, "userTransactionByUserSignature");
@@ -95,7 +95,7 @@ class GraphqlJavaPlaygroundTest {
                 List.of(new Transaction(null, LocalDateTime.of(2049, 10, 5, 0, 0, 0), TEN))
         );
 
-        var result = graphqlClient.query(FETCH_USER_TRANSACTIONS_QUERY, Map.of("userSignature", "userSig"))
+        var result = graphQlClient.query(FETCH_USER_TRANSACTIONS_QUERY, Map.of("userSignature", "userSig"))
                 .header("test", "testing")
                 .execute()
                 .getResult()
@@ -122,7 +122,7 @@ class GraphqlJavaPlaygroundTest {
         headers.add("test", "testing");
         headers.add("tester", "junit");
 
-        var result = graphqlClient.query(FETCH_USER_TRANSACTIONS_QUERY, Map.of("userSignature", "userSig"))
+        var result = graphQlClient.query(FETCH_USER_TRANSACTIONS_QUERY, Map.of("userSignature", "userSig"))
                 .headers(headers)
                 .execute()
                 .getResult()
