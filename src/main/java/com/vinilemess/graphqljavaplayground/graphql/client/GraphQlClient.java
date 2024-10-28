@@ -25,38 +25,38 @@ public class GraphQlClient {
         return new GraphQlClient(url);
     }
 
-    public GraphQlRequestBuilder query(final String query, final Map<String, Object> arguments) {
-        return new GraphQlRequestBuilder(query, arguments);
+    public GraphQlRequestSpec query(final String query, final Map<String, Object> arguments) {
+        return new GraphQlRequestSpec(query, arguments);
     }
 
-    public class GraphQlRequestBuilder {
+    public class GraphQlRequestSpec {
         private final String query;
         private final HttpHeaders headers;
         private final Map<String, Object> arguments;
 
-        private GraphQlRequestBuilder(final String query, final Map<String, Object> arguments) {
+        private GraphQlRequestSpec(final String query, final Map<String, Object> arguments) {
             this.query = query;
             this.headers = new HttpHeaders();
             this.arguments = arguments;
         }
 
-        public GraphQlRequestBuilder header(final String header, final String value) {
+        public GraphQlRequestSpec header(final String header, final String value) {
             this.headers.add(header, value);
             return this;
         }
 
-        public GraphQlRequestBuilder headers(final MultiValueMap<String, String> headers) {
+        public GraphQlRequestSpec headers(final MultiValueMap<String, String> headers) {
             this.headers.addAll(headers);
             return this;
         }
 
-        public GraphQlExecution execute() {
+        public GraphQlResponseSpec execute() {
             final String queryWithArguments = formatQueryWithArguments(this.query, this.arguments);
 
-            return new GraphQlExecution(queryWithArguments, this.headers);
+            return new GraphQlResponseSpec(queryWithArguments, this.headers);
         }
 
-        public CompletableFuture<GraphQlExecution> executeAsync() {
+        public CompletableFuture<GraphQlResponseSpec> executeAsync() {
             return CompletableFuture.supplyAsync(this::execute);
         }
 
@@ -72,12 +72,12 @@ public class GraphQlClient {
         }
     }
 
-    public class GraphQlExecution {
+    public class GraphQlResponseSpec {
 
         private final RestClient.RequestBodySpec result;
 
-        public GraphQlExecution(final String query,
-                                final HttpHeaders headers) {
+        public GraphQlResponseSpec(final String query,
+                                   final HttpHeaders headers) {
             result = restClient.post()
                     .uri(GRAPHQL_PATH)
                     .body(new GraphQlRequestBody(query, getOperationNameOrElseNull(query)).toString())
