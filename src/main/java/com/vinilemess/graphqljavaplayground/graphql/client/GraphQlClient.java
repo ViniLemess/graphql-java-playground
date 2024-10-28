@@ -2,11 +2,21 @@ package com.vinilemess.graphqljavaplayground.graphql.client;
 
 import com.vinilemess.graphqljavaplayground.graphql.client.result.GraphQlResult;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpRequest;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.lang.NonNullApi;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.ResponseErrorHandler;
 import org.springframework.web.client.RestClient;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -74,20 +84,29 @@ public class GraphQlClient {
 
     public class GraphQlResponseSpec {
 
-        private final RestClient.RequestBodySpec result;
+        private final RestClient.ResponseSpec result;
 
         public GraphQlResponseSpec(final String query,
                                    final HttpHeaders headers) {
             result = restClient.post()
                     .uri(GRAPHQL_PATH)
                     .body(new GraphQlRequestBody(query, getOperationNameOrElseNull(query)).toString())
-                    .headers(httpHeaders -> httpHeaders.addAll(headers));
+                    .headers(httpHeaders -> httpHeaders.addAll(headers))
+                    .retrieve();
+        }
+
+        public GraphQlResponseSpec onStatus4xx(final BiConsumer<HttpRequest, ClientHttpResponse> handler) {
+            result.onStatus(HttpStatusCode::is4xxClientError, handler::accept);
+            return this;
+        }
+
+        public GraphQlResponseSpec onStatus5xx(final BiConsumer<HttpRequest, ClientHttpResponse> handler) {
+            result.onStatus(HttpStatusCode::is5xxServerError, handler::accept);
+            return this;
         }
 
         public GraphQlResult getResult() {
-            return result.retrieve()
-                    .toEntity(GraphQlResult.class)
-                    .getBody();
+            return result.toEntity(GraphQlResult.class).getBody();
         }
 
         private static String getOperationNameOrElseNull(final String query) {

@@ -18,8 +18,7 @@ import java.util.concurrent.ExecutionException;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static java.math.BigDecimal.TEN;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @EnableWireMock
@@ -142,6 +141,42 @@ class GraphQlJavaPlaygroundTest {
                 .executeAsync();
 
         assertInstanceOf(CompletableFuture.class, result);
+    }
+
+    @Test
+    void shouldExecuteHandlerFunctionWhenGraphqlResponseReturns4xxStatusCode() {
+        stubFor(post("/graphql").willReturn(aResponse().withStatus(400)));
+
+        final var runtimeException = new RuntimeException("4xx test error");
+
+        final var exception = assertThrows(RuntimeException.class, () ->
+                graphQlClient.query(FETCH_USER_TRANSACTIONS_QUERY, Map.of("userSignature", "userSig"))
+                        .execute()
+                        .onStatus4xx((httpRequest, clientHttpResponse) -> {
+                            throw runtimeException;
+                        })
+                        .getResult()
+        );
+
+        assertEquals(runtimeException, exception);
+    }
+
+    @Test
+    void shouldExecuteHandlerFunctionWhenGraphqlResponseReturns5xxStatusCode() {
+        stubFor(post("/graphql").willReturn(aResponse().withStatus(500)));
+
+        final var runtimeException = new RuntimeException("5xx test error");
+
+        final var exception = assertThrows(RuntimeException.class, () ->
+                graphQlClient.query(FETCH_USER_TRANSACTIONS_QUERY, Map.of("userSignature", "userSig"))
+                        .execute()
+                        .onStatus5xx((httpRequest, clientHttpResponse) -> {
+                            throw runtimeException;
+                        })
+                        .getResult()
+        );
+
+        assertEquals(runtimeException, exception);
     }
 
     private record UserTransactionsTestDto(String userSignature, User user, List<Transaction> transactions) {
