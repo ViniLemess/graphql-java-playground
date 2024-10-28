@@ -13,6 +13,12 @@ public record GraphQlResult(LinkedHashMap<Object, Object> data, Collection<Graph
     public <T> T as(final Class<T> clazz, final String attributePath) {
         final Object data = this.data.get(attributePath);
 
+        return GraphQlResult.objectMapper.convertValue(data, clazz);
+    }
+
+    public <T> T as(final Class<T> clazz, final String attributePath, final ObjectMapper objectMapper) {
+        final Object data = this.data.get(attributePath);
+
         return objectMapper.convertValue(data, clazz);
     }
 }

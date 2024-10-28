@@ -35,7 +35,8 @@ public class UserTransactionController {
     public CompletableFuture<User> findUserByTransactionSignature(final UserTransaction userTransaction) {
         return supplyAsync(() -> {
             logger.info("Fetching user at {}", LocalTime.now());
-            return new User("id", "John Doe");
+            throw new RuntimeException("");
+//            return new User("id", "John Doe");
         });
     }
 

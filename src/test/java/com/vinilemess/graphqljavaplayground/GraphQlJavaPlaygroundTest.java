@@ -3,6 +3,9 @@ package com.vinilemess.graphqljavaplayground;
 import com.vinilemess.graphqljavaplayground.api.mock.usertransaction.Transaction;
 import com.vinilemess.graphqljavaplayground.api.mock.usertransaction.User;
 import com.vinilemess.graphqljavaplayground.graphql.client.GraphQlClient;
+import com.vinilemess.graphqljavaplayground.graphql.client.result.GraphQlError;
+import com.vinilemess.graphqljavaplayground.graphql.client.result.GraphQlError.Extensions;
+import com.vinilemess.graphqljavaplayground.graphql.client.result.GraphQlError.Location;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,7 +17,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static java.math.BigDecimal.TEN;
@@ -24,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @EnableWireMock
 class GraphQlJavaPlaygroundTest {
 
-    public static final String FETCH_USER_TRANSACTIONS_QUERY = """
+    private static final String FETCH_USER_TRANSACTIONS_QUERY = """
             query fetchUserTransactions {
               userTransactionByUserSignature(userSignature: $userSignature) {
                 userSignature
@@ -38,7 +40,7 @@ class GraphQlJavaPlaygroundTest {
               }
             }
             """;
-    public static final String USER_TRANSACTIONS_JSON = """
+    private static final String USER_TRANSACTIONS_JSON = """
             {
               "data": {
                 "userTransactionByUserSignature": {
@@ -50,6 +52,40 @@ class GraphQlJavaPlaygroundTest {
                     {
                       "amount": "10",
                       "dateTime": "2049-10-05T00:00:00"
+                    }
+                  ]
+                }
+              }
+            }
+            """;
+    private static final String USER_TRANSACTIONS_WITH_ERRORS = """
+            {
+              "errors": [
+                {
+                  "message": "INTERNAL_ERROR for idxyz",
+                  "locations": [
+                    {
+                      "line": 4,
+                      "column": 5
+                    }
+                  ],
+                  "path": [
+                    "userTransactionByUserSignature",
+                    "user"
+                  ],
+                  "extensions": {
+                    "classification": "INTERNAL_ERROR"
+                  }
+                }
+              ],
+              "data": {
+                "userTransactionByUserSignature": {
+                  "userSignature": "userSig",
+                  "user": null,
+                  "transactions": [
+                    {
+                      "amount": "10",
+                      "dateTime": "2049-10-05T00:00"
                     }
                   ]
                 }
@@ -177,6 +213,30 @@ class GraphQlJavaPlaygroundTest {
         );
 
         assertEquals(runtimeException, exception);
+    }
+
+    @Test
+    void shouldGraphQlResultWithErrorsAndPartialData() {
+        stubFor(post("/graphql").willReturn(okJson(USER_TRANSACTIONS_WITH_ERRORS)));
+
+        var expectedUserTransactions = new UserTransactionsTestDto(
+                "userSig",
+                null,
+                List.of(new Transaction(null, LocalDateTime.of(2049, 10, 5, 0, 0, 0), TEN))
+        );
+        var expectedErrors = List.of(GraphQlError.builder()
+                .path(List.of("userTransactionByUserSignature", "user"))
+                .message("INTERNAL_ERROR for idxyz")
+                .locations(List.of(new Location(4, 5)))
+                .extensions(new Extensions("INTERNAL_ERROR"))
+                .build());
+
+        var result = graphQlClient.query(FETCH_USER_TRANSACTIONS_QUERY, Map.of("userSignature", "userSig"))
+                .execute()
+                .getResult();
+
+        assertEquals(expectedUserTransactions, result.as(UserTransactionsTestDto.class, "userTransactionByUserSignature"));
+        assertEquals(expectedErrors, result.errors());
     }
 
     private record UserTransactionsTestDto(String userSignature, User user, List<Transaction> transactions) {
