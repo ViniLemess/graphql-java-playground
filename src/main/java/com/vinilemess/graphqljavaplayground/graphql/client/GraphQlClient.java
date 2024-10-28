@@ -8,13 +8,15 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static java.util.Objects.requireNonNullElse;
+import static com.vinilemess.graphqljavaplayground.graphql.client.GraphqlArgumentFormatter.formatQueryWithArguments;
 
 public class GraphQlClient {
 
@@ -62,17 +64,6 @@ public class GraphQlClient {
 
         public CompletableFuture<GraphQlResponseSpec> executeAsync() {
             return CompletableFuture.supplyAsync(this::execute);
-        }
-
-        private String formatQueryWithArguments(final String query,
-                                                final Map<String, Object> arguments) {
-            return arguments.entrySet()
-                    .stream()
-                    .reduce(query, (q, entry) -> {
-                        final String argumentValue = requireNonNullElse(entry.getValue(), "null").toString();
-                        final String argumentPlaceholder = "$%s".formatted(entry.getKey());
-                        return q.replace(argumentPlaceholder, argumentValue);
-                    }, (q1, q2) -> q1);
         }
     }
 
