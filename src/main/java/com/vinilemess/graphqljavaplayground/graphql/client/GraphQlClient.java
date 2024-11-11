@@ -60,10 +60,6 @@ public class GraphQlClient {
 
             return new GraphQlResponseSpec(queryWithArguments, this.headers);
         }
-
-        public CompletableFuture<GraphQlResponseSpec> executeAsync() {
-            return CompletableFuture.supplyAsync(this::execute);
-        }
     }
 
     public class GraphQlResponseSpec {

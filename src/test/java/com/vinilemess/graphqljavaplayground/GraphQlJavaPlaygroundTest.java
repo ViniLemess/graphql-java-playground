@@ -124,7 +124,7 @@ class GraphQlJavaPlaygroundTest {
     }
 
     @Test
-    void whenRequestIsSendWithHeaderShouldReturnUserTransactions() {
+    void whenRequestIsSentWithHeaderShouldReturnUserTransactions() {
         stubFor(graphqlRequest()
                 .withHeader("test", equalTo("testing"))
                 .willReturn(okJson(USER_TRANSACTIONS_JSON))
@@ -146,7 +146,7 @@ class GraphQlJavaPlaygroundTest {
     }
 
     @Test
-    void whenRequestIsSendWithHeadersShouldReturnUserTransactions() {
+    void whenRequestIsSentWithHeadersShouldReturnUserTransactions() {
         stubFor(graphqlRequest()
                 .withHeader("test", equalTo("testing"))
                 .withHeader("tester", equalTo("junit"))
@@ -170,16 +170,6 @@ class GraphQlJavaPlaygroundTest {
                 .as(UserTransactionsTestDto.class);
 
         assertEquals(expectedUserTransactions, result);
-    }
-
-    @Test
-    void shouldReturnFutureWhenExecutingAsyncQuery() {
-        stubFor(graphqlRequest().willReturn(okJson(USER_TRANSACTIONS_JSON)));
-
-        var result = graphQlClient.query(FETCH_USER_TRANSACTIONS_QUERY, Map.of("userSignature", "userSig"))
-                .executeAsync();
-
-        assertInstanceOf(CompletableFuture.class, result);
     }
 
     @Test
