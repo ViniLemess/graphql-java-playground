@@ -14,4 +14,5 @@ type User {
 
 type Transaction {
     amount: String
+    dateTime: String
 }

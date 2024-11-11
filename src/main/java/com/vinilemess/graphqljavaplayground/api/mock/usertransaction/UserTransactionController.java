@@ -1,9 +1,5 @@
-package com.vinilemess.parallelgraphqlfetchingpoc.usertransaction;
+package com.vinilemess.graphqljavaplayground.api.mock.usertransaction;
 
-import com.vinilemess.parallelgraphqlfetchingpoc.usertransaction.transaction.Transaction;
-import com.vinilemess.parallelgraphqlfetchingpoc.usertransaction.transaction.TransactionRepository;
-import com.vinilemess.parallelgraphqlfetchingpoc.usertransaction.user.User;
-import com.vinilemess.parallelgraphqlfetchingpoc.usertransaction.user.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -11,8 +7,11 @@ import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.stereotype.Controller;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static java.util.concurrent.CompletableFuture.supplyAsync;
@@ -20,14 +19,9 @@ import static java.util.concurrent.CompletableFuture.supplyAsync;
 @Controller
 public class UserTransactionController {
 
-    private final TransactionRepository transactionRepository;
-    private final UserRepository userRepository;
     private final Logger logger;
 
-    public UserTransactionController(final TransactionRepository transactionRepository,
-                                     final UserRepository userRepository) {
-        this.transactionRepository = transactionRepository;
-        this.userRepository = userRepository;
+    public UserTransactionController() {
         this.logger = LoggerFactory.getLogger(UserTransactionController.class);
     }
 
@@ -41,7 +35,8 @@ public class UserTransactionController {
     public CompletableFuture<User> findUserByTransactionSignature(final UserTransaction userTransaction) {
         return supplyAsync(() -> {
             logger.info("Fetching user at {}", LocalTime.now());
-            return userRepository.findUserByTransactionSignature(userTransaction.userSignature());
+            throw new RuntimeException("");
+//            return new User("id", "John Doe");
         });
     }
 
@@ -55,7 +50,7 @@ public class UserTransactionController {
                 e.printStackTrace();
             }
             logger.info("Fetching transactions at {}", LocalTime.now());
-            return transactionRepository.findByUserSignature(userTransaction.userSignature());
+            return List.of(new Transaction("id", LocalDateTime.of(2049, 10, 5, 0, 0, 0), BigDecimal.TEN));
         });
     }
 }
