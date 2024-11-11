@@ -74,14 +74,14 @@ class GraphqlArgumentFormatter {
      * Formats an Iterable of argument values into a string representation suitable for insertion into
      * a GraphQL query array format.
      *
-     * @param iterableArgument The iterable collection of argument values to be formatted.
+     * @param iterableArguments The iterable collection of argument values to be formatted.
      * @return The formatted string representation of the iterable argument values in array format.
      */
-    private static String formatToArrayArgument(final Iterable<?> iterableArgument) {
-        final Collection<String> argumentCollection = new ArrayList<>();
-        for (final Object argument : iterableArgument) {
-            argumentCollection.add(formatArgumentValue(argument));
+    private static String formatToArrayArgument(final Iterable<?> iterableArguments) {
+        final Collection<String> formattedArguments = new ArrayList<>();
+        for (final Object argument : iterableArguments) {
+            formattedArguments.add(formatArgumentValue(argument));
         }
-        return "[%s]".formatted(String.join(", ", argumentCollection));
+        return "[%s]".formatted(String.join(", ", formattedArguments));
     }
 }
