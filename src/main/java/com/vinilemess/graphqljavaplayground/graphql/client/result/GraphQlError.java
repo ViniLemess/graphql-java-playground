@@ -2,6 +2,14 @@ package com.vinilemess.graphqljavaplayground.graphql.client.result;
 
 import java.util.Collection;
 
+/**
+ * Represents an error response from a GraphQL query.
+ *
+ * @param message    The error message provided by the GraphQL server.
+ * @param locations  The locations within the GraphQL query where the error occurred.
+ * @param path       The path in the GraphQL response corresponding to the error.
+ * @param extensions Additional information about the error.
+ */
 public record GraphQlError(
         String message,
         Collection<Location> locations,
