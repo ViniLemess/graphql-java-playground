@@ -1,14 +1,9 @@
-package com.vinilemess.graphqljavaplayground;
+package com.vinilemess.graphqljavaplayground.graphql.client;
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.vinilemess.graphqljavaplayground.api.mock.usertransaction.Transaction;
 import com.vinilemess.graphqljavaplayground.api.mock.usertransaction.User;
-import com.vinilemess.graphqljavaplayground.graphql.client.GraphQlAttributePath;
-import com.vinilemess.graphqljavaplayground.graphql.client.GraphQlClient;
 import com.vinilemess.graphqljavaplayground.graphql.client.result.GraphQlError;
-import com.vinilemess.graphqljavaplayground.graphql.client.result.GraphQlError.Extensions;
-import com.vinilemess.graphqljavaplayground.graphql.client.result.GraphQlError.Location;
-import com.vinilemess.graphqljavaplayground.graphql.client.result.GraphQlResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,7 +14,6 @@ import org.wiremock.spring.EnableWireMock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static java.math.BigDecimal.TEN;
@@ -27,7 +21,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @EnableWireMock
-class GraphQlJavaPlaygroundTest {
+class GraphQlClientTest {
+
 
     private static final String FETCH_USER_TRANSACTIONS_QUERY = """
             query fetchUserTransactions {
@@ -220,8 +215,8 @@ class GraphQlJavaPlaygroundTest {
         var expectedErrors = List.of(GraphQlError.builder()
                 .path(List.of("userTransactionByUserSignature", "user"))
                 .message("INTERNAL_ERROR for idxyz")
-                .locations(List.of(new Location(4, 5)))
-                .extensions(new Extensions("INTERNAL_ERROR"))
+                .locations(List.of(new GraphQlError.Location(4, 5)))
+                .extensions(new GraphQlError.Extensions("INTERNAL_ERROR"))
                 .build());
 
         var result = graphQlClient.query(FETCH_USER_TRANSACTIONS_QUERY, Map.of("userSignature", "userSig"))
@@ -247,7 +242,7 @@ class GraphQlJavaPlaygroundTest {
 
         assertEquals("errors :D", exception.getMessage());
     }
-    
+
     @GraphQlAttributePath("userTransactionByUserSignature")
     private record UserTransactionsTestDto(String userSignature, User user, List<Transaction> transactions) {
     }
