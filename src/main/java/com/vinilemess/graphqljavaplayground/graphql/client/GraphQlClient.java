@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 import static com.vinilemess.graphqljavaplayground.graphql.client.GraphqlArgumentFormatter.formatQueryWithArguments;
 
 /**
- * {@code GraphQlClient} is a client for interacting with GraphQL endpoints using spring's {@link RestClient}.
+ * {@code GraphQlClient} is a client for interacting with GraphQL endpoints using Spring's {@link RestClient}.
  * <p>
  * This client supports creating and sending GraphQL queries with custom headers and arguments.
  * </p>
@@ -32,7 +32,6 @@ import static com.vinilemess.graphqljavaplayground.graphql.client.GraphqlArgumen
  * </pre>
  */
 public class GraphQlClient {
-
     private static final String GRAPHQL_PATH = "/graphql";
     private final RestClient restClient;
 
@@ -41,9 +40,10 @@ public class GraphQlClient {
     }
 
     /**
-     * Constructs a GraphQlClient with the specified URL.
+     * Constructs a {@code GraphQlClient} with the specified URL.
      *
      * @param url The URL to initialize the RestClient.
+     * @return a new instance of {@code GraphQlClient}.
      */
     public static GraphQlClient create(final String url) {
         return new GraphQlClient(url);
@@ -52,8 +52,8 @@ public class GraphQlClient {
     /**
      * Creates a new {@code GraphQlRequestSpec} with the specified GraphQL query and arguments.
      *
-     * @param query the GraphQL query string
-     * @param arguments the arguments to be used in the GraphQL query
+     * @param query the GraphQL query string.
+     * @param arguments the arguments to be used in the GraphQL query. Can be empty but not null.
      * @return a {@code GraphQlRequestSpec} object initialized with the specified query and arguments.
      */
     public GraphQlRequestSpec query(final String query, final Map<String, Object> arguments) {
@@ -74,7 +74,7 @@ public class GraphQlClient {
          * Constructs a new {@code GraphQlRequestSpec} with the specified query and arguments.
          *
          * @param query The GraphQL query string.
-         * @param arguments The arguments to be used in the GraphQL query.
+         * @param arguments The arguments to be used in the GraphQL query. Can be empty but not null.
          */
         private GraphQlRequestSpec(final String query, final Map<String, Object> arguments) {
             this.query = query;
@@ -85,8 +85,8 @@ public class GraphQlClient {
         /**
          * Adds a header to the GraphQL request specification.
          *
-         * @param header the name of the header to be added
-         * @param value the value of the header to be added
+         * @param header the name of the header to be added.
+         * @param value the value of the header to be added.
          * @return the current {@code GraphQlRequestSpec} object with the added header.
          */
         public GraphQlRequestSpec header(final String header, final String value) {
@@ -95,9 +95,9 @@ public class GraphQlClient {
         }
 
         /**
-         * Adds multiple headers to the GraphQL request specification.
+         * Adds multiple headers to the GraphQl request specification.
          *
-         * @param headers the headers to be added, represented as a MultiValueMap where keys are header names and values are lists of header values
+         * @param headers the headers to be added, represented as a {@link MultiValueMap} where keys are header names and values are lists of header values.
          * @return the current {@code GraphQlRequestSpec} object with the added headers.
          */
         public GraphQlRequestSpec headers(final MultiValueMap<String, String> headers) {
@@ -113,7 +113,6 @@ public class GraphQlClient {
          */
         public GraphQlResponseSpec execute() {
             final String queryWithArguments = formatQueryWithArguments(this.query, this.arguments);
-
             return new GraphQlResponseSpec(queryWithArguments, this.headers);
         }
     }
@@ -123,18 +122,16 @@ public class GraphQlClient {
      * It encapsulates methods to handle and retrieve the response from a GraphQL query.
      */
     public class GraphQlResponseSpec {
-
         private final RestClient.ResponseSpec result;
         private Consumer<GraphQlResult> onErrorsHandler;
 
         /**
          * Constructs a {@code GraphQlResponseSpec} with the specified GraphQL query and HTTP headers.
          *
-         * @param query   the GraphQL query to be posted
-         * @param headers the HTTP headers to be included in the request
+         * @param query the GraphQL query to be posted.
+         * @param headers the HTTP headers to be included in the request.
          */
-        public GraphQlResponseSpec(final String query,
-                                   final HttpHeaders headers) {
+        public GraphQlResponseSpec(final String query, final HttpHeaders headers) {
             this.result = restClient.post()
                     .uri(GRAPHQL_PATH)
                     .body(new GraphQlRequestBody(query, getOperationNameOrElseNull(query)).toString())
@@ -194,17 +191,15 @@ public class GraphQlClient {
          * Extracts the operation name from a GraphQL query string if present.
          *
          * @param query the GraphQL query string.
-         * @return the extracted operation name, or null if no operation name is found or the query is blank or null.
+         * @return the extracted operation name, or {@code null} if no operation name is found or the query is blank or null.
          */
         private static String getOperationNameOrElseNull(final String query) {
             if (query == null || query.isBlank()) {
                 return null;
             }
-
             final String operationNameRegex = "query\\s+(\\S+)\\s*\\{";
             final Pattern pattern = Pattern.compile(operationNameRegex);
             final Matcher matcher = pattern.matcher(query);
-
             return matcher.find() ? matcher.group(1) : null;
         }
     }
