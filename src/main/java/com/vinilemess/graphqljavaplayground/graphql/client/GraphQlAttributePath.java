@@ -16,7 +16,7 @@ import java.lang.annotation.RetentionPolicy;
  * {@code
  * @GraphQlAttributePath("yourAttributePath")
  * public class YourClass {
- *     // Class implementation
+ *     // class attributes and methods
  * }
  * }
  * </pre>
