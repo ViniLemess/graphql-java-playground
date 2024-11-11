@@ -10,7 +10,7 @@ class GraphqlArgumentFormatter {
     }
 
     public static String formatQueryWithArguments(final String query,
-                                            final Map<String, Object> arguments) {
+                                                  final Map<String, Object> arguments) {
         return arguments.entrySet()
                 .stream()
                 .reduce(query, (q, entry) -> {

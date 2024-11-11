@@ -8,11 +8,10 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -70,14 +69,16 @@ public class GraphQlClient {
     public class GraphQlResponseSpec {
 
         private final RestClient.ResponseSpec result;
+        private Consumer<GraphQlResult> onErrorsHandler;
 
         public GraphQlResponseSpec(final String query,
                                    final HttpHeaders headers) {
-            result = restClient.post()
+            this.result = restClient.post()
                     .uri(GRAPHQL_PATH)
                     .body(new GraphQlRequestBody(query, getOperationNameOrElseNull(query)).toString())
                     .headers(httpHeaders -> httpHeaders.addAll(headers))
                     .retrieve();
+            this.onErrorsHandler = graphQlResult -> {};
         }
 
         public GraphQlResponseSpec onStatus4xx(final BiConsumer<HttpRequest, ClientHttpResponse> handler) {
@@ -91,7 +92,9 @@ public class GraphQlClient {
         }
 
         public GraphQlResult getResult() {
-            return result.toEntity(GraphQlResult.class).getBody();
+            final var graphQlResult = result.toEntity(GraphQlResult.class).getBody();
+            this.onErrorsHandler.accept(graphQlResult);
+            return graphQlResult;
         }
 
         private static String getOperationNameOrElseNull(final String query) {
@@ -104,6 +107,11 @@ public class GraphQlClient {
             final Matcher matcher = pattern.matcher(query);
 
             return matcher.find() ? matcher.group(1) : null;
+        }
+
+        public GraphQlResponseSpec doOnError(final Consumer<GraphQlResult> onErrorsHandler) {
+            this.onErrorsHandler = onErrorsHandler;
+            return this;
         }
     }
 }

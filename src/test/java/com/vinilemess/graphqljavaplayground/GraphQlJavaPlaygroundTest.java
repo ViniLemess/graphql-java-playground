@@ -1,11 +1,14 @@
 package com.vinilemess.graphqljavaplayground;
 
+import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.vinilemess.graphqljavaplayground.api.mock.usertransaction.Transaction;
 import com.vinilemess.graphqljavaplayground.api.mock.usertransaction.User;
+import com.vinilemess.graphqljavaplayground.graphql.client.GraphQlAttributePath;
 import com.vinilemess.graphqljavaplayground.graphql.client.GraphQlClient;
 import com.vinilemess.graphqljavaplayground.graphql.client.result.GraphQlError;
 import com.vinilemess.graphqljavaplayground.graphql.client.result.GraphQlError.Extensions;
 import com.vinilemess.graphqljavaplayground.graphql.client.result.GraphQlError.Location;
+import com.vinilemess.graphqljavaplayground.graphql.client.result.GraphQlResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
@@ -104,7 +107,7 @@ class GraphQlJavaPlaygroundTest {
 
     @Test
     void shouldReturnUserTransactionsWithoutErrors() {
-        stubFor(post("/graphql").willReturn(okJson(USER_TRANSACTIONS_JSON)));
+        stubFor(graphqlRequest().willReturn(okJson(USER_TRANSACTIONS_JSON)));
 
         var expectedUserTransactions = new UserTransactionsTestDto(
                 "userSig",
@@ -115,14 +118,14 @@ class GraphQlJavaPlaygroundTest {
         var result = graphQlClient.query(FETCH_USER_TRANSACTIONS_QUERY, Map.of("userSignature", "userSig"))
                 .execute()
                 .getResult()
-                .as(UserTransactionsTestDto.class, "userTransactionByUserSignature");
+                .as(UserTransactionsTestDto.class);
 
         assertEquals(expectedUserTransactions, result);
     }
 
     @Test
     void whenRequestIsSendWithHeaderShouldReturnUserTransactions() {
-        stubFor(post("/graphql")
+        stubFor(graphqlRequest()
                 .withHeader("test", equalTo("testing"))
                 .willReturn(okJson(USER_TRANSACTIONS_JSON))
         );
@@ -137,14 +140,14 @@ class GraphQlJavaPlaygroundTest {
                 .header("test", "testing")
                 .execute()
                 .getResult()
-                .as(UserTransactionsTestDto.class, "userTransactionByUserSignature");
+                .as(UserTransactionsTestDto.class);
 
         assertEquals(expectedUserTransactions, result);
     }
 
     @Test
     void whenRequestIsSendWithHeadersShouldReturnUserTransactions() {
-        stubFor(post("/graphql")
+        stubFor(graphqlRequest()
                 .withHeader("test", equalTo("testing"))
                 .withHeader("tester", equalTo("junit"))
                 .willReturn(okJson(USER_TRANSACTIONS_JSON))
@@ -164,14 +167,14 @@ class GraphQlJavaPlaygroundTest {
                 .headers(headers)
                 .execute()
                 .getResult()
-                .as(UserTransactionsTestDto.class, "userTransactionByUserSignature");
+                .as(UserTransactionsTestDto.class);
 
         assertEquals(expectedUserTransactions, result);
     }
 
     @Test
     void shouldReturnFutureWhenExecutingAsyncQuery() {
-        stubFor(post("/graphql").willReturn(okJson(USER_TRANSACTIONS_JSON)));
+        stubFor(graphqlRequest().willReturn(okJson(USER_TRANSACTIONS_JSON)));
 
         var result = graphQlClient.query(FETCH_USER_TRANSACTIONS_QUERY, Map.of("userSignature", "userSig"))
                 .executeAsync();
@@ -181,7 +184,7 @@ class GraphQlJavaPlaygroundTest {
 
     @Test
     void shouldExecuteHandlerFunctionWhenGraphqlResponseReturns4xxStatusCode() {
-        stubFor(post("/graphql").willReturn(aResponse().withStatus(400)));
+        stubFor(graphqlRequest().willReturn(aResponse().withStatus(400)));
 
         final var runtimeException = new RuntimeException("4xx test error");
 
@@ -199,7 +202,7 @@ class GraphQlJavaPlaygroundTest {
 
     @Test
     void shouldExecuteHandlerFunctionWhenGraphqlResponseReturns5xxStatusCode() {
-        stubFor(post("/graphql").willReturn(aResponse().withStatus(500)));
+        stubFor(graphqlRequest().willReturn(aResponse().withStatus(500)));
 
         final var runtimeException = new RuntimeException("5xx test error");
 
@@ -216,8 +219,8 @@ class GraphQlJavaPlaygroundTest {
     }
 
     @Test
-    void shouldGraphQlResultWithErrorsAndPartialData() {
-        stubFor(post("/graphql").willReturn(okJson(USER_TRANSACTIONS_WITH_ERRORS)));
+    void shouldReturnGraphQlResultWithErrorsAndPartialData() {
+        stubFor(graphqlRequest().willReturn(okJson(USER_TRANSACTIONS_WITH_ERRORS)));
 
         var expectedUserTransactions = new UserTransactionsTestDto(
                 "userSig",
@@ -235,10 +238,33 @@ class GraphQlJavaPlaygroundTest {
                 .execute()
                 .getResult();
 
-        assertEquals(expectedUserTransactions, result.as(UserTransactionsTestDto.class, "userTransactionByUserSignature"));
+        assertEquals(expectedUserTransactions, result.as(UserTransactionsTestDto.class));
         assertEquals(expectedErrors, result.errors());
     }
 
+    @Test
+    void shouldExecuteOnErrorHookWhenGraphqlResultReturnsWithErrors() {
+        stubFor(graphqlRequest().willReturn(okJson(USER_TRANSACTIONS_WITH_ERRORS)));
+
+        var exception = assertThrows(RuntimeException.class, () ->
+                graphQlClient.query(FETCH_USER_TRANSACTIONS_QUERY, Map.of("userSignature", "userSig"))
+                        .execute()
+                        .doOnError(graphqlResult -> {
+                            throw new RuntimeException("errors :D");
+                        })
+                        .getResult()
+        );
+
+        assertEquals("errors :D", exception.getMessage());
+    }
+    
+    @GraphQlAttributePath("userTransactionByUserSignature")
     private record UserTransactionsTestDto(String userSignature, User user, List<Transaction> transactions) {
+    }
+
+    private static MappingBuilder graphqlRequest() {
+        return post("/graphql")
+                .withRequestBody(matchingJsonPath("$"))
+                .withRequestBody(matchingJsonPath("$.query", matching("^(?!\\s*$).+")));
     }
 }
